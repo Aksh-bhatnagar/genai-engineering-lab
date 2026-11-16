@@ -1,8 +1,50 @@
-from agent.agent import TravelAgent
+from agent.agent import Agent
+from tools.destinations import get_destinations
+from tools.weather import get_weather
 
-
-agent = TravelAgent()
-
+agent = Agent(
+    instructions="You are a helpful Travel assistant.",
+    tools=[
+        {
+            "type": "function",
+            "function": {
+                "name": "get_destinations",
+                "description": "Get a list of available travel destinations in a country.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "country": {
+                            "type": "string",
+                            "description": "The country to search destinations in."
+                        }
+                    },
+                    "required": ["country"]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "Get the current weather for a specific city.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "city": {
+                            "type": "string",
+                            "description": "The city to get weather information for."
+                        }
+                    },
+                    "required": ["city"]
+                }
+            }
+        }
+    ],
+    tools_function={
+        "get_destinations": get_destinations,
+        "get_weather": get_weather
+    }
+)
 
 try:
     response = agent.run(

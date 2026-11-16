@@ -1,20 +1,17 @@
 import os
 import json
-from pyexpat.errors import messages
-from urllib import response
+from pathlib import Path
+
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from tools.destinations import get_destinations
-from tools.weather import get_weather
+
+load_dotenv(".env")
 
 
-load_dotenv("../../.env")
+class Agent:
 
-
-class TravelAgent:
-
-    def __init__(self):
+    def __init__(self, instructions, tools, tools_function):
         api_key = os.getenv("OPENROUTER_API_KEY")
 
         self.client = OpenAI(
@@ -22,58 +19,16 @@ class TravelAgent:
             api_key=api_key
         )
 
-        self.tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "get_destinations",
-                    "description": "Get a list of available travel destinations in a country.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "country": {
-                                "type": "string",
-                                "description": "The country to search destinations in."
-                            }
-                        },
-                        "required": ["country"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "get_weather",
-                    "description": "Get the current weather for a specific city.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "city": {
-                                "type": "string",
-                                "description": "The city to get weather information for."
-                            }
-                        },
-                        "required": ["city"]
-                    }
-                }
-            }
-        ]
-
-        self.tool_functions = {
-            "get_destinations": get_destinations,
-            "get_weather": get_weather
-        }
+        self.instructions = instructions
+        self.tools = tools
+        self.tool_functions = tools_function
 
     def run(self, user_message):
 
         messages = [
             {
                 "role": "system",
-                "content": (
-                    "You are a helpful travel agent. "
-                    "Use the available tools when you need destination or weather information. "
-                    "Never invent tool results."
-                )
+                "content": self.instructions
             },
             {
                 "role": "user",
